@@ -31,7 +31,14 @@ from .motor_res_filter import MotorResonanceFilter
 from .shaketune_config import ShakeTuneConfig
 from .shaketune_process import ShakeTuneProcess
 
+DEFAULT_FOLDER = '~/printer_data/config/ShakeTune_results'
+DEFAULT_NUMBER_OF_RESULTS = 3
+DEFAULT_KEEP_RAW_CSV = False
+DEFAULT_DPI = 150
+DEFAULT_TIMEOUT = 300
+DEFAULT_SHOW_MACROS = True
 DEFAULT_MOTOR_DAMPING_RATIO = 0.05
+
 ST_COMMANDS = {
     'EXCITATE_AXIS_AT_FREQ': (
         'Maintain a specified excitation frequency for a period '
@@ -68,15 +75,17 @@ class ShakeTune:
 
         self._initialize_config(config)
         self._register_commands()
-        self._initialize_motor_resonance_filter()
 
+    self._initialize_motor_resonance_filter()
+  
     # Initialize the ShakeTune object and its configuration
     def _initialize_config(self, config) -> None:
-        result_folder = config.get('result_folder', default='~/printer_data/config/ShakeTune_results')
+        result_folder = config.get('result_folder', default=DEFAULT_FOLDER)
         result_folder_path = Path(result_folder).expanduser() if result_folder else None
-        keep_n_results = config.getint('number_of_results_to_keep', default=3, minval=0)
-        keep_csv = config.getboolean('keep_raw_csv', default=False)
-        dpi = config.getint('dpi', default=150, minval=100, maxval=500)
+        keep_n_results = config.getint('number_of_results_to_keep', default=DEFAULT_NUMBER_OF_RESULTS, minval=0)
+        keep_csv = config.getboolean('keep_raw_csv', default=DEFAULT_KEEP_RAW_CSV)
+        dpi = config.getint('dpi', default=DEFAULT_DPI, minval=100, maxval=500)
+
         self._st_config = ShakeTuneConfig(result_folder_path, keep_n_results, keep_csv, dpi)
 
         self.timeout = config.getfloat('timeout', 300, above=0.0)
@@ -173,6 +182,7 @@ class ShakeTune:
             raise self._config.error(
                 'No [resonance_tester] config section found in printer.cfg! Please add one to use Shake&Tune!'
             )
+
 
         # In case the user has configured a motor resonance filter, we need to make sure
         # that the input shaper is configured as well in order to use them. This is because
